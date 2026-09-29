@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Let's Groove · Cabina</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f6f1fa;--card:#fff;--ink:#241833;--mut:#7a6a8c;--acc:#c2185b;--acc2:#e6a100;--ok:#1b9e5a;--line:#e3d8ee}
+:root:not([data-theme="light"]){}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#150d20;--card:#231633;--ink:#f4ecfb;--mut:#a996bd;--acc:#ff4f9a;--acc2:#ffc233;--ok:#4cd68a;--line:#3a2853}}
+:root[data-theme="dark"]{--bg:#150d20;--card:#231633;--ink:#f4ecfb;--mut:#a996bd;--acc:#ff4f9a;--acc2:#ffc233;--ok:#4cd68a;--line:#3a2853}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:10px 12px 0;border-bottom:1px solid var(--line)}
+h1{margin:0;font:800 20px/1 Georgia,serif;letter-spacing:.5px}h1 span{color:var(--acc)}
+.top{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+input,select,textarea,button{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 10px;max-width:100%}
+textarea{width:100%;resize:vertical;min-height:70px}input[type=text],input:not([type]),select{width:100%}
+button{cursor:pointer}.b{background:var(--acc);color:#fff;border:0;font-weight:700}.g{background:transparent}
+nav{display:flex;gap:4px;overflow-x:auto;padding:8px 0}nav button{white-space:nowrap;border-radius:20px;padding:7px 13px}nav button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+main{padding:12px;max-width:820px;margin:0 auto}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1 1 130px}
+.blk{font:700 13px Georgia,serif;color:var(--acc2);text-transform:uppercase;letter-spacing:1px;margin:16px 0 6px}
+.it{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:12px;background:var(--card);border:1px solid var(--line);margin-bottom:6px}
+.it.now{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc)}.it.done{opacity:.5}.it.done .t{text-decoration:line-through}
+.tm{font:700 15px ui-monospace,monospace;color:var(--acc);min-width:46px}.t{font-weight:700}.d{color:var(--mut);font-size:14px}
+.it input[type=checkbox]{width:24px;height:24px;flex:none;accent-color:var(--ok)}
+.mut{color:var(--mut);font-size:13px}.tag{font-size:12px;padding:2px 8px;border-radius:12px;border:1px solid var(--line);color:var(--mut)}
+.s-prog{color:var(--acc2)}.s-listo{color:var(--ok)}.s-sono{color:var(--mut)}
+.msg{display:flex;gap:10px;align-items:flex-start}.msg .tx{flex:1}.msg .q{font-size:1.05em}
+.live .q{font-size:26px;line-height:1.3}.live .it .t{font-size:22px}.live .d{font-size:18px}.live .tm{font-size:20px}
+.fav{color:var(--acc2)}.sm{padding:5px 9px;font-size:13px}.ban{background:var(--acc2);color:#241833;padding:8px 12px;border-radius:10px;margin-bottom:10px;font-size:14px}
+.empty{color:var(--mut);text-align:center;padding:18px}label{display:block;font-size:13px;color:var(--mut);margin:8px 0 3px}
+</style></head><body>
+<header>
+ <div class="top"><h1>Let's <span>Groove</span> · Cabina</h1>
+  <div class="row" style="flex:0 1 auto"><input type="date" id="ep" style="width:auto"><button class="g" id="live">📻 Modo aire</button></div></div>
+ <nav id="nav"></nav>
+</header>
+<main id="m"></main>
+<script>
+// ================= CONFIGURACIÓN: PEGÁ ACÁ TUS DOS DATOS =================
+const API_URL="https://script.google.com/macros/s/AKfycbyzLAU-3VR_dFJrF6FhdvUxIlkA9F_XQXlNkXaF2UsvDK041x6z-AY3-EAqeSEcH23N/exec";
+const API_KEY="groove-disco-26";
+const POLL_MS=4000; // cada cuántos milisegundos consulta cambios (4000 = 4 segundos)
+// ==========================================================================
+const G=[
+["b1","Bloque 1 · 19:00 – 19:30 · Bienvenida y gancho nostálgico"],
+["19:00","Apertura + set de entrada (DJ Pizano)","Cortina potente, saludo enérgico, adelantos del programa."],
+["19:15","Presentación de la consigna + lanzamiento de redes/WhatsApp","Sondeo de primeras respuestas."],
+["19:22","El Track del Recuerdo","Clásico de culto y anécdota de cabina."],
+["19:30","Tanda comercial + selección musical",""],
+["b2","Bloque 2 · 19:30 – 20:00 · Invitado y entrevista"],
+["19:35","Bienvenida al invitado + rompehielos","Conectar con la temática del programa."],
+["19:45","El Soundtrack de tu Vida (entrevista)","3 canciones que lo marcaron."],
+["19:55","Reacción de la audiencia + mensajes al invitado",""],
+["20:00","Tanda comercial + tema musical",""],
+["b3","Bloque 3 · 20:00 – 20:30 · Coconductor y pura música"],
+["20:05","Entrada del coconductor + repaso de la consigna","Balance de los mejores mensajes."],
+["20:15","Selección musical del coconductor","Curiosidades 80/90, batallas musicales."],
+["20:25","Selección de mensajes de oyentes","Los más emotivos o divertidos."],
+["20:30","Tanda comercial + tema musical",""],
+["b4","Bloque 4 · 20:30 – 21:00 · Cierre, mini set y despedida"],
+["20:35","Agenda de eventos / efemérides","Jorge, coconductor e invitado."],
+["20:40","La Lenta / Mini Set de Pizano","Clásicos 80s/90s, edits Disco/Funk."],
+["20:55","Veredicto de la consigna + cierre y agradecimientos","2 o 3 mejores mensajes, auspiciantes, redes."],
+["20:58","Tema de salida épico","Saludos a oyentes. Prod: Claudio Lugo · Aire: Tamara Carmarán."]
+];
+const BL=["Bloque 1","Bloque 2","Bloque 3","Bloque 4"];
+const TABS=[["grilla","📋 Grilla"],["musica","🎵 Música"],["consigna","💬 Consigna"],["concurso","🎁 Concurso"],["hist","🗂 Historial"]];
+let tab="grilla",live=false,ep=today(),E={},S=[],M=[],db=false,hist=[];
+function today(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const $=id=>document.getElementById(id);
+const ID=t=>"i"+t.replace(":","");
+function nowSlot(){const d=new Date(),n=d.getHours()*60+d.getMinutes();let cur=null;for(const g of G){if(g.length<3)continue;const[h,m]=g[0].split(":").map(Number);if(h*60+m<=n)cur=g[0]}return cur}
+function safe(p){try{const r=p();if(r&&r.catch)r.catch(e=>console.error(e));return r}catch(e){console.error(e)}}
+// ---- data layer (Google Sheets vía Apps Script) ----
+const CONF_OK=/^https:\/\/script\.google\.com\/.+\/exec$/.test(API_URL)&&API_KEY.length>0&&API_KEY.indexOf("PEGAR_AQUI")<0;
+const net={q:[],busy:false,polling:false,err:"",perr:"",pf:0,lastW:0,snap:"",dirty:false};
+function jf(url,opt){const c=new AbortController(),t=setTimeout(()=>c.abort(),25000);return fetch(url,{...opt,signal:c.signal}).then(r=>r.json()).finally(()=>clearTimeout(t))}
+const getUrl=q=>API_URL+"?key="+encodeURIComponent(API_KEY)+"&"+q;
+async function init(){
+ db=CONF_OK;
+ render();sub();
+ if(db){setInterval(poll,POLL_MS);document.addEventListener("visibilitychange",()=>{if(!document.hidden)poll()})}
+}
+function sub(){
+ E={};S=[];M=[];net.snap="";net.dirty=false;
+ render();poll();
+}
+function soft(){const a=document.activeElement;if(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&a.type!=="checkbox"&&$("m").contains(a)){net.dirty=true;return}net.dirty=false;render()}
+// Lectura periódica: no pisa lo que se está escribiendo ni cambios propios en camino
+async function poll(){
+ if(!db||document.hidden||net.polling||net.q.length)return;
+ net.polling=true;const myEp=ep,t0=Date.now();
+ try{
+  const r=await jf(getUrl("action=get&ep="+encodeURIComponent(myEp)),{cache:"no-store"});
+  if(!r||!r.ok){net.perr="La planilla respondió: "+((r&&r.error)||"error desconocido");soft();return}
+  net.pf=0;if(net.perr){net.perr="";net.dirty=true}
+  if(myEp!==ep||net.q.length||net.lastW>t0)return;
+  const snap=JSON.stringify([r.episode,r.songs,r.msgs]);
+  if(snap!==net.snap||net.dirty){
+   net.snap=snap;E=r.episode||{};
+   const by=(x,y)=>(x.ts||0)-(y.ts||0);
+   S=(r.songs||[]).sort(by);M=(r.msgs||[]).sort(by);soft();
+  }
+ }catch(e){if(++net.pf>=3){net.perr="Sin conexión con la planilla. Reintentando…";soft()}}
+ finally{net.polling=false}
+}
+// Escritura: cola en orden, con reintentos si se corta la conexión
+function send(action,body){net.q.push({action,body});pump()}
+async function pump(){
+ if(net.busy)return;net.busy=true;let tries=0;
+ while(net.q.length){
+  const j=net.q[0];
+  try{
+   const r=await jf(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({key:API_KEY,action:j.action,...j.body})});
+   net.q.shift();net.lastW=Date.now();tries=0;
+   if(r&&r.ok){if(net.err){net.err="";soft()}}
+   else{net.err="La planilla rechazó un cambio: "+((r&&r.error)||"error desconocido");net.snap="";soft();setTimeout(()=>{net.err="";soft()},10000)}
+  }catch(e){
+   tries++;const n=net.q.length;net.err="Sin conexión con la planilla. Reintentando… ("+n+" cambio"+(n>1?"s":"")+" pendiente"+(n>1?"s":"")+")";soft();
+   await new Promise(res=>setTimeout(res,Math.min(10000,2000*tries)));
+  }
+ }
+ net.busy=false;
+}
+async function setE(o){Object.assign(E,o);if(db)send("setEpisode",{ep,patch:o})}
+async function addC(c,o){o.ep=ep;o.ts=Date.now();o.id="i"+o.ts.toString(36)+Math.random().toString(36).slice(2,6);(c==="songs"?S:M).push({...o});if(db)send("add",{table:c,item:o});render()}
+async function updC(c,id,o){const arr=c==="songs"?S:M;const x=arr.find(z=>z.id===id);if(x)Object.assign(x,o);if(db)send("update",{table:c,id,patch:o});render()}
+async function delC(c,id){if(!confirm("¿Borrar?"))return;const arr=c==="songs"?S:M;const i=arr.findIndex(z=>z.id===id);if(i>=0)arr.splice(i,1);if(db)send("remove",{table:c,id});render()}
+// ---- views ----
+function nav(){$("nav").innerHTML=TABS.map(([k,l])=>`<button class="${tab===k?"on":""}" data-t="${k}">${l}</button>`).join("")}
+function vGrilla(){
+ let h=`<div class="card"><div class="row"><div><label>Invitado</label><input data-e="invitado" value="${esc(E.invitado)}"></div><div><label>Coconductor</label><input data-e="coco" value="${esc(E.coco)}"></div></div>
+ <label>Consigna del día</label><input data-e="consigna" value="${esc(E.consigna)}" placeholder="Ej: La canción de tu primer baile"></div>`;
+ const cur=ep===today()?nowSlot():null;
+ for(const g of G){
+  if(g.length<3){h+=`<div class="blk">${esc(g[1])}</div>`;continue}
+  const id=ID(g[0]),dn=!!E["d_"+id];
+  h+=`<div class="it ${dn?"done":""} ${cur===g[0]?"now":""}"><input type="checkbox" data-d="${id}" ${dn?"checked":""}><span class="tm">${g[0]}</span><div style="flex:1"><div class="t">${esc(g[1])}</div>${g[2]?`<div class="d">${esc(g[2])}</div>`:""}`+
+  (live?"":`<input data-e="n_${id}" value="${esc(E["n_"+id])}" placeholder="Nota de producción…" style="margin-top:6px">`)+
+  (live&&E["n_"+id]?`<div class="d">📝 ${esc(E["n_"+id])}</div>`:"")+`</div></div>`;
+ }
+ return h;
+}
+function vMusica(){
+ let h=`<div class="card"><div class="row"><input id="st" placeholder="Tema"><input id="sa" placeholder="Artista"></div>
+ <div class="row" style="margin-top:8px"><select id="sb">${BL.map(b=>`<option>${b}</option>`).join("")}<option>Track del Recuerdo</option><option>Mini Set Pizano</option></select><button class="b" data-a="addsong">＋ Agregar</button></div></div>`;
+ if(!S.length)return h+`<div class="empty">Todavía no hay temas cargados.</div>`;
+ const lab={prog:"🕒 Programado",listo:"✅ Listo en cabina",sono:"▶ Ya sonó"};
+ return h+S.map((s,i)=>`<div class="it ${s.st==="sono"?"done":""}"><span class="tm">${i+1}</span><div style="flex:1"><div class="t">${esc(s.title)}</div><div class="d">${esc(s.artist)} · <span class="tag">${esc(s.slot)}</span> <span class="s-${s.st}">${lab[s.st]||""}</span></div></div>
+ <div style="display:flex;flex-direction:column;gap:4px"><button class="sm" data-a="cyc" data-id="${s.id}">Estado</button><button class="sm g" data-a="del" data-c="songs" data-id="${s.id}">🗑</button></div></div>`).join("");
+}
+function vConsigna(){
+ const fav=M.filter(x=>x.fav).length;
+ let h=`<div class="card"><div class="mut">Consigna de hoy</div><div style="font:700 ${live?28:19}px Georgia,serif">${esc(E.consigna||"— cargala en la Grilla —")}</div></div>`;
+ if(!live)h+=`<div class="card"><div class="row"><input id="mn" placeholder="Nombre (opcional)"><select id="mo"><option>WhatsApp</option><option>Instagram</option><option>Facebook</option><option>Llamado</option><option>Otro</option></select></div>
+ <textarea id="mt" placeholder="Mensaje del oyente…" style="margin-top:8px"></textarea><button class="b" data-a="addmsg" style="margin-top:8px;width:100%">＋ Cargar mensaje</button></div>`;
+ h+=`<div class="mut" style="margin:6px 2px">${M.length} mensajes · ${fav} ⭐ para el veredicto</div>`;
+ if(!M.length)return h+`<div class="empty">Sin mensajes todavía.</div>`;
+ return h+[...M].reverse().map(x=>`<div class="card msg" style="${x.read?"opacity:.5":""}"><div class="tx"><div class="q">“${esc(x.text)}”</div><div class="mut">— ${esc(x.name||"Oyente")} · ${esc(x.via)}</div></div>
+ <div style="display:flex;flex-direction:column;gap:4px"><button class="sm ${x.fav?"fav":"g"}" data-a="fav" data-id="${x.id}">${x.fav?"⭐":"☆"}</button><button class="sm g" data-a="read" data-id="${x.id}">${x.read?"↩":"✔"}</button>${live?"":`<button class="sm g" data-a="del" data-c="msgs" data-id="${x.id}">🗑</button>`}</div></div>`).join("");
+}
+function vConcurso(){
+ return `<div class="card"><label>Premio / sorteo</label><input data-e="c_premio" value="${esc(E.c_premio)}" placeholder="Ej: 2 entradas para…">
+ <label>Cómo participar</label><textarea data-e="c_como" placeholder="Ej: Mandá un WhatsApp con tu canción favorita del 90">${esc(E.c_como)}</textarea>
+ <label>Auspiciante</label><input data-e="c_ausp" value="${esc(E.c_ausp)}">
+ <label>Participantes / notas</label><textarea data-e="c_part">${esc(E.c_part)}</textarea>
+ <label>🏆 Ganador/a (nombre y contacto)</label><input data-e="c_gan" value="${esc(E.c_gan)}"></div>
+ <button class="b" data-a="pick" style="width:100%">🎲 Sortear al azar entre mensajes cargados</button><div id="pk" style="font:700 22px Georgia,serif;text-align:center;margin-top:12px"></div>`;
+}
+function vHist(){
+ if(!db)return `<div class="empty">El historial requiere conexión con la base compartida.</div>`;
+ return `<div class="mut" style="margin-bottom:8px">Programas guardados (tocá uno para abrirlo)</div>`+(hist.length?hist.map(x=>`<div class="card" data-open="${x.id}" style="cursor:pointer"><div class="t">${esc(x.id)}</div><div class="d">Consigna: ${esc(x.consigna||"—")}</div><div class="d">Invitado: ${esc(x.invitado||"—")} · Coco: ${esc(x.coco||"—")}${x.c_gan?" · 🏆 "+esc(x.c_gan):""}</div></div>`).join(""):`<div class="empty">Aún no hay programas guardados.</div>`);
+}
+function render(){
+ const keep={};["st","sa","sb","mn","mo","mt"].forEach(k=>{const n=$(k);if(n)keep[k]=n.value});
+ nav();document.body.classList.toggle("live",live);$("live").textContent=live?"✏️ Modo edición":"📻 Modo aire";
+ $("ep").value=ep;
+ const v={grilla:vGrilla,musica:vMusica,consigna:vConsigna,concurso:vConcurso,hist:vHist}[tab]();
+ $("m").innerHTML=(db?"":`<div class="ban">Sin base compartida: los cambios no se sincronizan ni se guardan.</div>`)+((net.err||net.perr)?`<div class="ban">⚠ ${esc(net.err||net.perr)}</div>`:"")+v;
+ for(const k in keep){const n=$(k);if(n)n.value=keep[k]}
+}
+async function loadHist(){if(!db)return;try{const r=await jf(getUrl("action=hist"),{cache:"no-store"});if(!r.ok)throw new Error(r.error);hist=r.episodes.map(d=>({...d,id:String(d.fecha)})).sort((a,b)=>b.id.localeCompare(a.id));render()}catch(e){console.error(e)}}
+// ---- events ----
+document.addEventListener("click",async e=>{
+ const t=e.target.closest("[data-t],[data-a],[data-open]");if(!t)return;
+ if(t.dataset.t){tab=t.dataset.t;render();if(tab==="hist")loadHist();return}
+ if(t.dataset.open){ep=t.dataset.open;tab="grilla";sub();render();return}
+ const a=t.dataset.a,id=t.dataset.id;
+ if(a==="addsong"){const ti=$("st").value.trim();if(!ti)return;await addC("songs",{title:ti,artist:$("sa").value.trim(),slot:$("sb").value,st:"prog"});$("st").value="";$("sa").value=""}
+ if(a==="cyc"){const s=S.find(x=>x.id===id),o=["prog","listo","sono"];updC("songs",id,{st:o[(o.indexOf(s.st)+1)%3]})}
+ if(a==="del")delC(t.dataset.c,id);
+ if(a==="addmsg"){const x=$("mt").value.trim();if(!x)return;await addC("msgs",{name:$("mn").value.trim(),via:$("mo").value,text:x,fav:false,read:false});$("mt").value="";$("mn").value=""}
+ if(a==="fav"){const x=M.find(z=>z.id===id);updC("msgs",id,{fav:!x.fav})}
+ if(a==="read"){const x=M.find(z=>z.id===id);updC("msgs",id,{read:!x.read})}
+ if(a==="pick"){const p=M.filter(x=>x.name||x.text);if(!p.length){$("pk").textContent="No hay mensajes cargados";return}const w=p[Math.floor(Math.random()*p.length)];$("pk").innerHTML="🎉 "+esc(w.name||"Oyente")+"<div class='mut'>“"+esc(w.text)+"”</div>"}
+});
+document.addEventListener("change",e=>{
+ const t=e.target;
+ if(t.id==="ep"){if(t.value){ep=t.value;sub();render()}return}
+ if(t.dataset.e){setE({[t.dataset.e]:t.value})}
+ if(t.dataset.d){setE({["d_"+t.dataset.d]:t.checked});render()}
+});
+$("live").onclick=()=>{live=!live;if(live&&tab==="hist")tab="grilla";render()};
+setInterval(()=>{if(tab==="grilla"&&!document.activeElement?.matches?.("input,textarea"))render()},60000);
+init();
+</script></body></html>
